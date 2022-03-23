@@ -28,6 +28,7 @@ router.post("/", async (req, res) => {
     }
   }
 });
+debugger
 // router.get('/',(req,res)=>{
 //   res.render("index", { err: "", succ: "" });
 // })
@@ -47,7 +48,9 @@ router.post(
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long"),
   async (req, res) => {
+
     const { errors } = validationResult(req);
+    debugger
     const hashpass = await bcrypt
       .hash(req.body.password, 10)
       .then((message) => {

@@ -6,7 +6,6 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const session = require("express-session");
 const User = require("./models/usermodel");
-
 const Admin = require("./models/adminmodel");
 const morgan = require("morgan");
 const router = require("./route/userrouter");
@@ -14,6 +13,7 @@ const adminRouter = require("./route/adminrrouter");
 const { redirect } = require("express/lib/response");
 app.use(methodOverride("_method"));
 app.use(morgan('tiny'))
+debugger
 app.use(function (req, res, next) {
   if (!req.user) {
     res.header(
