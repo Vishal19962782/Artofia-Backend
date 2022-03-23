@@ -7,7 +7,7 @@ const userScema = new mongoose.Schema(
         index: { unique: false },
         match:[/^[a-zA-Z][a-zA-Z\s]*$/,"Enter a valid name"] ,
         minlength:[5,"please enter min 5 chars"],
-        validate:[]},
+      },
     lname: { type: String, required: false, index: { unique: false } ,match:[/^[a-zA-Z][a-zA-Z\s]*$/,"Enter a valid name"]},
     // username:{type:String,required:false,index:{unique:false}},
     email: { type: String, required: true, index: { unique:[ true ,"Email already registered"]} },

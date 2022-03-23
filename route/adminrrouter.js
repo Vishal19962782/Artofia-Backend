@@ -14,9 +14,9 @@ const req = require("express/lib/request");
 adminrouter.get("/", (req, res) => {
   console.log("root");
   if (req.session.usertype == "admin") {
-    res.redirect("admin/homepage");
+    res.status(403).redirect("admin/homepage");
   } else {
-    res.render("adminlogin",{err:""});
+    res.status(200).render("adminlogin",{err:""});
   }
 });
 
@@ -25,14 +25,14 @@ adminrouter.post("/", async (req, res) => {
   const { username, password } = req.body;
   const user = await Admin.findOne({ email: username }).lean();
   if (!user) {
-    res.send("User not found");
+    res.status(203).render("adminlogin", { err: "No account found" });
   } else {
     if (password == user.password) {
       req.session.Isadmin = username;
       req.session.usertype = "admin";
-      res.redirect("homepage");
+      res.status(200).redirect("homepage");
     } else {
-      res.render("adminlogin", { err: "Wrong username or password" });
+      res.status(401).render("adminlogin", { err: "Wrong username or password" });
     }
   }
 });
@@ -40,12 +40,11 @@ adminrouter.use((req, res, next) => {
   if (!req.session.Isadmin) {
     console.log("not admin");
     console.log("User");
-    res.redirect("/admin");
+    res.status(200).redirect("/admin");
   } else next();
 });
 adminrouter.get("/add-user", (req, res) => {
-  console.log("kaaka malannu")
-  res.render("admincreate",{err:"",errors:0});
+  res.status(200).render("admincreate",{err:"",errors:0});
 });
 adminrouter.post("/add-user",check("fname")
 .isLength({ min: 3 })
@@ -71,7 +70,7 @@ async (req, res) => {
         email: mail,
         password: hashpass,
       }).then((message) => {
-        res.redirect("/admin/homepage");
+        res.status(201).redirect("/admin/homepage");
       });
     } catch (err) {
       console.log(err);
@@ -79,13 +78,13 @@ async (req, res) => {
         console.log(JSON.stringify(err));
         console.log(err);
         err.message = "User already exists";
-        res.render("admincreate", {
+        res.status(409).render("admincreate", {
           err: "User already exst with this email_ID",
           succ: "",
           errors: 0,
         });
       } else if (err) {
-        res.render("admincreate",{ err: "Please enter valid details", errors });
+        res.status(400).render("admincreate",{ err: "Please enter valid details", errors });
       } else {
         res.redirect("/route");
       }
@@ -93,16 +92,16 @@ async (req, res) => {
   } 
   else {
     console.log(errors);
-    res.render("admincreate", { err: "", errors });
+    res.status(400).render("admincreate", { err: "", errors });
   }
 })
 adminrouter.get("/homepage", async (req, res) => {
   if (req.session.usertype == "admin") {
     await User.find({}).sort({fname:1}) .collation({locale: "en" }).then((userobj) => {
-      res.render("adminhome", { userobj });
+      res.status(200).render("adminhome", { userobj });
     });
   } else {
-    res.redirect("/admin");
+    res.status(401).redirect("/admin");
   }
 });
 adminrouter.get('/find',async (req,res)=>{
@@ -110,16 +109,16 @@ adminrouter.get('/find',async (req,res)=>{
   const userobj = await User.find({ fname: new RegExp(req.query.iofield, "i") }).lean();
   console.log(userobj[0]);
   const a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  res.render("searchpage", { userobj });
+  res.status(200).render("searchpage", { userobj });
 
 })
 adminrouter.get("/:id",async(req, res)=>{
   const user = await User.findOne({ _id: req.params.id })
   .then((message) => {
-    res.render("adminupdate", { message });
+    res.status(200).render("adminupdate", { message });
   })
   .catch((err) => {
-    res.send(err);
+    res.status(404).send(err);
   });
 })
 adminrouter.put("/:id",async(req, res)=>{
@@ -127,20 +126,15 @@ adminrouter.put("/:id",async(req, res)=>{
   try {
     await User.updateOne({_id:req.params.id},{fname:fname,lname:lname,email:mail})
     .then((message) => {
-      res.redirect("/admin/homepage");
+      res.status(200).redirect("/admin/homepage");
     })
   }catch(err){
     console.log(err.code);
     if(err.code==11000){
      err.message="User already exists";
     }
-    res.render("adminupdate",{err});
+    res.status(409).render("adminupdate",{err});
   }
-})
-adminrouter.delete("/:id",async(req, res)=>{
-  await User.findByIdAndDelete(req.params.id)
-  res.redirect('/admin')
-
 })
 adminrouter.patch("/:id",async(req,res)=>{
   const user=await User.findOne({_id:req.params.id});
@@ -148,16 +142,22 @@ adminrouter.patch("/:id",async(req,res)=>{
 {  if(user.isBlocked){
     await User.updateOne({_id:req.params.id},{isBlocked:false})
     .then((message) => {
-      res.redirect("/admin/homepage");
+      res.status(200).redirect("/admin/homepage");
     })
   }else{  
     await User.updateOne({_id:req.params.id},{isBlocked:true})
     .then((message) => {
-      res.redirect("/admin/homepage");
+      res.res(200).redirect("/admin/homepage");
     })
   }}
   catch(error){
-    res.send(err)
+    res.status(400).send(err)
   }
 })
+adminrouter.delete("/:id",async(req, res)=>{
+  await User.findByIdAndDelete(req.params.id)
+  res.status(202).redirect('/admin')
+
+})
+
 module.exports = adminrouter;
