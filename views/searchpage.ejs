@@ -101,10 +101,14 @@
               <td><%= userobj[i].lname %> </td>
               <td><%= userobj[i].email %> </td>
               <% if(userobj[i].isBlocked){ %> 
-                <td>Suspended</td>
+                <form action="<%= userobj[i]._id %>?_method=PATCH" method="post">
+                  <td><button class="btn btn-outline-warning" type="submit">Suspended</button></td>
+                </form>
                 <% } %>
                 <% if(!userobj[i].isBlocked){ %> 
-                    <td>Active</td>
+                  <form action="<%= userobj[i]._id %>?_method=PATCH" method="post">
+                    <td><button class="btn btn-outline-success" type="submit">Active</button></td>
+                  </form>
                 <% } %>
               <td><a href="<%= userobj[i]._id %> "><button class="btn btn-primary">Edit</button></a></td>
             </tr>

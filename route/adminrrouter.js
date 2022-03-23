@@ -140,22 +140,24 @@ adminrouter.put("/:id",async(req, res)=>{
 adminrouter.delete("/:id",async(req, res)=>{
   await User.findByIdAndDelete(req.params.id)
   res.redirect('/admin')
-// const user=await User.findOne({_id:req.params.id});
-//   try
-// {  if(user.isBlocked){
-//     await User.updateOne({_id:req.params.id},{isBlocked:false})
-//     .then((message) => {
-//       res.redirect("/admin/homepage");
-//     })
-//   }else{  
-//     await User.updateOne({_id:req.params.id},{isBlocked:true})
-//     .then((message) => {
-//       res.redirect("/admin/homepage");
-//     })
-//   }}
-//   catch(error){
-//     res.send(err)
-//   }
-})
 
+})
+adminrouter.patch("/:id",async(req,res)=>{
+  const user=await User.findOne({_id:req.params.id});
+  try
+{  if(user.isBlocked){
+    await User.updateOne({_id:req.params.id},{isBlocked:false})
+    .then((message) => {
+      res.redirect("/admin/homepage");
+    })
+  }else{  
+    await User.updateOne({_id:req.params.id},{isBlocked:true})
+    .then((message) => {
+      res.redirect("/admin/homepage");
+    })
+  }}
+  catch(error){
+    res.send(err)
+  }
+})
 module.exports = adminrouter;

@@ -12,6 +12,7 @@ const userScema = new mongoose.Schema(
     // username:{type:String,required:false,index:{unique:false}},
     email: { type: String, required: true, index: { unique:[ true ,"Email already registered"]} },
     password: { type: String, required: true,minlength:[5,"Please enter a passowrd of atleast 5 chars"] },
+    isBlocked: { type: Boolean, default: false },
     
   },
   { collection: "user" }

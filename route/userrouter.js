@@ -19,7 +19,10 @@ router.post("/", async (req, res) => {
   if (!user) {
     res.status(400).render("index", { err: "User not found" ,succ:''});
   } else {
-    if (await bcrypt.compare(password, user.password)) {
+    if(user.isBlocked){
+      res.status(400).render("index", { err: "User is blocked please contact admin" ,succ:''});
+    }
+    else if((!user.isBlocked) &&(await bcrypt.compare(password, user.password))) {
       req.session.user = user.email;
       req.session.usertype = "user";
       res.redirect("homepage");
