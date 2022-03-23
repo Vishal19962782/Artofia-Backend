@@ -1,0 +1,34 @@
+body{
+    background-image: url("https://i.redd.it/52f61nfzmwl51.jpg");
+    background-size: cover;
+    /* background-color: aqua; */
+}
+table{
+    margin-top: 30px;
+    background-color:#f8e8ff;
+    border-radius: 20px;
+    padding:10px;
+    outline: none;
+    border-collapse: collapse;
+    
+}
+
+nav{
+    box-shadow:10px 10px 10px rgb(42, 42, 42);
+    
+}
+form{
+    color:white;
+}
+.head{
+    color:white;
+}
+.create{
+    text-decoration: none;
+    font-weight:bold;
+    margin-top: 20px;
+
+}
+.create{
+    margin-top: 20px;
+}
