@@ -9,6 +9,8 @@ const session = require("express-session");
 const { append } = require("express/lib/response");
 const functions=require("./function");
 const { findByIdAndUpdate, findByIdAndDelete } = require("../models/usermodel");
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr('myTotalySecretKey');
 const req = require("express/lib/request");
 
 adminrouter.get("/", (req, res) => {
@@ -19,6 +21,7 @@ adminrouter.get("/", (req, res) => {
     res.status(200).render("adminlogin",{err:""});
   }
 });
+
 
 adminrouter.post("/", async (req, res) => {
   console.log(req.body);
@@ -70,6 +73,7 @@ async (req, res) => {
         email: mail,
         password: hashpass,
       }).then((message) => {
+        req.session.message="User created successfully";
         res.status(201).redirect("/admin/homepage");
       });
     } catch (err) {
@@ -98,6 +102,7 @@ async (req, res) => {
 adminrouter.get("/homepage", async (req, res) => {
   if (req.session.usertype == "admin") {
     await User.find({}).sort({fname:1}) .collation({locale: "en" }).then((userobj) => {
+      console.log(userobj)
       res.status(200).render("adminhome", { userobj });
     });
   } else {
@@ -126,6 +131,7 @@ adminrouter.put("/:id",async(req, res)=>{
   try {
     await User.updateOne({_id:req.params.id},{fname:fname,lname:lname,email:mail})
     .then((message) => {
+      req.session.message="Updated successfully";
       res.status(200).redirect("/admin/homepage");
     })
   }catch(err){
@@ -137,6 +143,7 @@ adminrouter.put("/:id",async(req, res)=>{
   }
 })
 adminrouter.patch("/:id",async(req,res)=>{
+  console.log(req.param.id)
   const user=await User.findOne({_id:req.params.id});
   try
 {  if(user.isBlocked){
@@ -147,16 +154,17 @@ adminrouter.patch("/:id",async(req,res)=>{
   }else{  
     await User.updateOne({_id:req.params.id},{isBlocked:true})
     .then((message) => {
-      res.res(200).redirect("/admin/homepage");
+      res.status(200).redirect("/admin/homepage");
     })
   }}
   catch(error){
-    res.status(400).send(err)
+    res.status(400).send(error)
   }
 })
 adminrouter.delete("/:id",async(req, res)=>{
   await User.findByIdAndDelete(req.params.id)
-  res.status(202).redirect('/admin')
+  req.session.message='Sucessfully deleted';
+  res.status(202).redirect('/admin/homepage')
 
 })
 

@@ -84,7 +84,7 @@ function isOne(element) {
 function checkValid() 
 {if(check.every(isOne)){
     submit.disabled = false;
-    error1.textContent = "success";
+   
 }
 else{
     submit.disabled = true;

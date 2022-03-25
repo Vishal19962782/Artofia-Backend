@@ -11,6 +11,8 @@ const morgan = require("morgan");
 const router = require("./route/userrouter");
 const adminRouter = require("./route/adminrrouter");
 const { redirect } = require("express/lib/response");
+
+
 app.use(methodOverride("_method"));
 app.use(morgan('tiny'))
 debugger
@@ -26,8 +28,10 @@ app.use(function (req, res, next) {
   next();
 });
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
 
 app.use(
   session({
@@ -36,7 +40,11 @@ app.use(
     saveUninitialized: true,
   })
 );
-
+app.use((req,res,next)=>{
+  res.locals.message=req.session.message;
+  delete req.session.message;
+  next();
+})
 app.use("/route", router);
 app.use("/admin", adminRouter);
 app.set("view engine", "ejs");
@@ -62,6 +70,7 @@ app.get("/", (req, res) => {
   } else {
     req.session.isLoggedIn = false;
   
-    res.render("index",{err:"",succ:''});
+    res.redirect('/route')
+    // res.render("index",{err:"",succ:''});
   }
 });

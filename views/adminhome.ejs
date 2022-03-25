@@ -63,13 +63,21 @@
     </nav>
     <br>
     <div class="row justify-content-center create">
-      <div class="col col-lg-2 col-md-2 ">
-    
-     <a href="add-user"> <button class="btn btn-primary" type="submit">Create user</button></a>
-    
-   
+      <div class="col col-lg-2 col-md-2  ">
+     <a href="add-user"> <button class="btn btn-primary buttons" type="submit">Create user</button></a> 
   </div>
+  </div>  
+  <div class="row justify-content-center">
+    <% if(locals.message){ %> 
+      <div class="col col-md-5">
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <p><%=locals.message%> </p>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      <% } %>
+    </div> 
   </div>
+  
   <table class="table table-dark container">
     <thead>
       <tr>
@@ -99,6 +107,7 @@
               <td><button class="btn btn-outline-success" type="submit">Active</button></td>
             </form>
           <% } %>
+         
         <td><a href="<%= userobj[i]._id %> "><button class="btn btn-primary">Edit</button></a></td>
       </tr>
      <% } %> 
