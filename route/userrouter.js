@@ -88,7 +88,7 @@ router.post(
           email: req.body.mail,
           password: hashpass,
         }).then((messages) => {
-          req.session.message = "User created successfully";
+          req.session.message = " User created successfully";
           res.redirect("/route");
           // res.status(201).render("index", { succ: "User created", err: "" });
         });
@@ -98,6 +98,8 @@ router.post(
           console.log(JSON.stringify(err));
           console.log(err);
           err.message = "User already exists";
+          console.log(req.body)
+
           res.status(409).render("signup", {
             err: "User already exst with this email_ID",
             succ: "",

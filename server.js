@@ -11,6 +11,7 @@ const morgan = require("morgan");
 const router = require("./route/userrouter");
 const adminRouter = require("./route/adminrrouter");
 const { redirect } = require("express/lib/response");
+require("dotenv").config();
 
 
 app.use(methodOverride("_method"));
@@ -52,7 +53,7 @@ app.use("/static", express.static(path.join(__dirname, "public")));
 const DB = "mongodb://localhost:27017/UserManagement";
 
 mongoose
-  .connect(DB)
+  .connect(process.env.DATABASE)
   .then((message) => {
     console.log("Db connected");
   })
@@ -60,7 +61,7 @@ mongoose
     console.log(err);
   });
 
-app.listen("9000", () => {
+app.listen(process.env.PORT, () => {
   console.log("server listening");
 });
 
