@@ -12,15 +12,33 @@ const { findByIdAndUpdate, findByIdAndDelete } = require("../models/usermodel");
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr("myTotalySecretKey");
 const req = require("express/lib/request");
+const jwt = require("jsonwebtoken");
 
 adminrouter.get("/", (req, res) => {
   console.log("root");
   if (req.session.usertype == "admin") {
     res.status(403).redirect("admin/homepage");
   } else {
-    res.status(200).render("adminlogin", { err: "" });
+    res.status(200).send("adminlogin", { err: "" });
   }
 });
+const verify = (req, res, next) => {
+  const authheader = req.headers.accesstoken;
+
+  if (authheader) {
+    console.log("++++++++++++" + authheader);
+    const token = authheader.split(" ")[1];
+    console.log(JSON.parse(token));
+    jwt.verify(JSON.parse(token), "secretkey", (err, user) => {
+      console.log(err + user);
+      if (err) return res.status(403).json("token not valid");
+      else req.user = user;
+      next();
+    });
+  } else {
+    res.status(400).json({ message: "Not authenticated" });
+  }
+};
 
 adminrouter.post("/", async (req, res) => {
   console.log(req.body);
@@ -30,23 +48,24 @@ adminrouter.post("/", async (req, res) => {
     res.status(203).render("adminlogin", { err: "No account found" });
   } else {
     if (password == user.password) {
+      const accesstoken = jwt.sign({ email: username }, "secretkey");
       req.session.Isadmin = username;
       req.session.usertype = "admin";
-      res.status(200).redirect("homepage");
+      res.status(200).json({ accesstoken, usertype: "admin" });
     } else {
       res
         .status(401)
-        .render("adminlogin", { err: "Wrong username or password" });
+        .json({ err: "Wrong username or password" });
     }
   }
 });
-adminrouter.use((req, res, next) => {
-  if (!req.session.Isadmin) {
-    console.log("not admin");
-    console.log("User");
-    res.status(200).redirect("/admin");
-  } else next();
-});
+// adminrouter.use((req, res, next) => {
+//   if (!req.session.Isadmin) {
+//     console.log("not admin"); 
+//     console.log("User");
+//     res.status(200).redirect("/admin");
+//   } else next();
+// });
 adminrouter.get("/add-user", (req, res) => {
   res.status(200).render("admincreate", { err: "", errors: 0 });
 });
@@ -63,6 +82,7 @@ adminrouter.post(
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long"),
   async (req, res) => {
+    console.log("keeeeeeeeeri");
     const { errors } = validationResult(req);
     const { fname, lname, mail, password } = req.body;
     const hashpass = await bcrypt.hash(password, 10).then((message) => {
@@ -71,32 +91,26 @@ adminrouter.post(
     if (!errors.length) {
       try {
         await User.create({
-          fname: fname,
+          fname: fname, 
           lname: lname,
           email: mail,
           password: hashpass,
         }).then((message) => {
           req.session.message = "User created successfully";
-          res.status(201).redirect("/admin/homepage");
+          res.status(201).json("User created successfully");
         });
       } catch (err) {
         console.log(err);
         if (err.code == 11000) {
-          console.log(JSON.stringify(err));
+          console.log(JSON.stringify(err)); 
           console.log(err);
           err.message = "User already exists";
-          res.status(409).render("admincreate", {
-            err: "User already exst with this email_ID",
-            succ: "",
-            errors: 0,
-          });
+          res.status(409).json({ err: err.message });
         } else if (err) {
-          res
-            .status(400)
-            .render("admincreate", {
-              err: "Please enter valid details",
-              errors,
-            });
+          res.status(400).render("admincreate", {
+            err: "Please enter valid details",
+            errors,
+          });
         } else {
           res.redirect("/route");
         }
@@ -107,18 +121,18 @@ adminrouter.post(
     }
   }
 );
-adminrouter.get("/homepage", async (req, res) => {
-  if (req.session.usertype == "admin") {
-    await User.find({})
-      .sort({ fname: 1 })
-      .collation({ locale: "en" })
-      .then((userobj) => {
-        console.log(userobj);
-        res.status(200).render("adminhome", { userobj });
-      });
-  } else {
-    res.status(401).redirect("/admin");
-  }
+adminrouter.get("/homepage",async (req, res) => {
+  console.log("dsfkdj");
+  await User.find({})
+    .sort({ fname: 1 })
+    .collation({ locale: "en" })
+    .then((userobj) => {
+      console.log(userobj);
+      res.status(200).json(userobj);
+    })
+    .catch((e) => {
+      res.json(e);
+    });
 });
 adminrouter.get("/find", async (req, res) => {
   console.log(req.query.iofield);
@@ -139,6 +153,7 @@ adminrouter.get("/:id", async (req, res) => {
     });
 });
 adminrouter.put("/:id", async (req, res) => {
+  console.log(req.params.id+"hjkgjkh");
   const { fname, lname, mail } = req.body;
   try {
     await User.updateOne(
@@ -146,42 +161,45 @@ adminrouter.put("/:id", async (req, res) => {
       { fname: fname, lname: lname, email: mail }
     ).then((message) => {
       req.session.message = "Updated successfully";
-      res.status(200).redirect("/admin/homepage");
+      res.status(200).json("success");
     });
   } catch (err) {
     console.log(err.code);
     if (err.code == 11000) {
       err.message = "User already exists";
     }
-    res.status(409).render("adminupdate", { err });
+    res.status(409).json(err);
   }
 });
 adminrouter.patch("/:id", async (req, res) => {
-  console.log(req.param.id);
- 
+  console.log("iam in");
+  console.log(req.params.id);
+
   try {
     const user = await User.findOne({ _id: req.params.id });
+    console.log(user);
     if (user.isBlocked) {
       await User.updateOne({ _id: req.params.id }, { isBlocked: false }).then(
         (message) => {
-          res.status(200).redirect("/admin/homepage");
+          res.status(200).json("false");
         }
       );
     } else {
       await User.updateOne({ _id: req.params.id }, { isBlocked: true }).then(
         (message) => {
-          res.status(200).redirect("/admin/homepage");
+          res.status(200).json("true");
         }
       );
     }
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).json(error);
   }
 });
 adminrouter.delete("/:id", async (req, res) => {
+  console.log(req.params.id);
   await User.findByIdAndDelete(req.params.id);
-  req.session.message = "Sucessfully deleted";
-  res.status(202).redirect("/admin/homepage");
+  const users = await User.find({});
+  res.status(202).json(users);
 });
 
 module.exports = adminrouter;

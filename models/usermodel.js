@@ -9,14 +9,27 @@ const userScema = new mongoose.Schema(
         minlength:[3,"please enter min 5 chars"],
       },
     lname: { type: String, required: false, index: { unique: false } ,match:[/^[a-zA-Z][a-zA-Z\s]*$/,"Enter a valid name"]},
-    // username:{type:String,required:false,index:{unique:false}},
-    email: { type: String, required: true, index: { unique:[ true ,"Email already registered"]} },
+
+    email: { type: String, required: true, index: { unique:true } },
     password: { type: String, required: true,minlength:[3,"Please enter a passowrd of atleast 5 chars"] },
     isBlocked: { type: Boolean, default: false },
-    
+    address: { type: String, required: false, index: { unique: false } },
+    phoneNo: { type: String, required: true, index: { unique: false } },
+    avatar: { type: String, required: false, index: { unique: false } },
+    role: { type: String, required: false, index: { unique: false } },
+    isArtist: { type: Boolean, default: false },
+    isAdmin: { type: Boolean, default: false },
+    followers: [{userName:String,userId:String}],
+    following: [{userName:String,userId:String}],
+    posts: [{postId:String,postName:String}], 
+    orders: [{orderId:String,orderName:String}],
+    tickets: [{ticketId:String,ticketName:String}],
+    Notifications: [{NotificationId:String,NotificationName:String}],
+    bids:[{postId:String,postName:String,date:Date,price:String}],
+    dateOfCreation: { type: Date, default: Date.now }, 
   },
-  { collection: "user" }
-);
+  { collection: "Users" }
+); 
 
 userScema.statics.adduser = function (
   { fname, lname, mail, password },

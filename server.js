@@ -1,6 +1,7 @@
 const express = require("express");
 const methodOverride = require("method-override");
 const app = express();
+const fileUpload = require("express-fileupload");
 const mongoose = require("mongoose");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
@@ -9,11 +10,13 @@ const User = require("./models/usermodel");
 const Admin = require("./models/adminmodel");
 const morgan = require("morgan");
 const router = require("./route/userrouter");
+const Postrouter = require("./route/Posts");
 const adminRouter = require("./route/adminrrouter");
 const { redirect } = require("express/lib/response");
+const cors=require("cors");
+
 require("dotenv").config();
-
-
+app.use(cors())
 app.use(methodOverride("_method"));
 app.use(morgan('tiny'))
 debugger
@@ -32,7 +35,7 @@ app.use(function (req, res, next) {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
+// app.use(fileUpload())
 
 app.use(
   session({
@@ -41,25 +44,26 @@ app.use(
     saveUninitialized: true,
   })
 );
-app.use((req,res,next)=>{
-  res.locals.message=req.session.message;
-  delete req.session.message;
-  next();
-})
+// app.use((req,res,next)=>{
+//   res.locals.message=req.session.message;
+//   delete req.session.message;
+//   next();
+// })
 app.use("/route", router);
+app.use("/api/user", Postrouter);
 app.use("/admin", adminRouter);
 app.set("view engine", "ejs");
 app.use("/static", express.static(path.join(__dirname, "public")));
-const DB = "mongodb://localhost:27017/UserManagement";
+const DB = "mongodb://localhost:27017/blog";
 
 mongoose
-  .connect(process.env.DATABASE)
+  .connect(DB)
   .then((message) => {
     console.log("Db connected");
   })
   .catch((err) => {
     console.log(err);
-  });
+  }); 
 
 app.listen(process.env.PORT, () => {
   console.log("server listening");
