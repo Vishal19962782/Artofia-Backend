@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const User = require("./usermodel");
+
 const postSchema = new mongoose.Schema(
   {
     postName: {
@@ -9,30 +11,41 @@ const postSchema = new mongoose.Schema(
       match: [/^[a-zA-Z][a-zA-Z\s]*$/, "Enter a valid name"],
       minlength: [3, "please enter min 5 chars"],
     },
+    postOwner: { type: mongoose.Schema.Types.ObjectId,ref:"User", required: true },
+
     postDescription: {
       type: String,
-      required: false,
+      required: true,
       index: { unique: false },
     },
-    Image: { data: Buffer,contentType:String},
-    postDate: { type: Date, required: false, index: { unique: false } },
-    // postLikes: [
-    //   {
-    //     userId: { type: String, required: false, index: { unique: false } },
-    //     userName: { type: String, required: false, index: { unique: false } },
-    //   },
-    // ],
-    // postComments: [
-    //   {
-    //     userId: { type: String, required: false, index: { unique: true } },
-    //     userName: { type: String, required: false, index: { unique: false } },
-    //     userAvatar: { type: String, required: false, index: { unique: false } },
-    //     comment: { type: String, required: false, index: { unique: false } },
-    //   },
-    // ],
+    postCategory: {
+      type: String,
+      required: false, 
+      index: { unique: false },
+    },
+    Image: { type: String ,required:true },
+    postDate: {
+      type: Date,
+      required: false,
+      index: { unique: false }, 
+      default: Date.now,
+    },
+    postLikes: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      },
+    ],
+    postComments: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        comment: { type: String, required: true, index: { unique: false } },
+        date:{type:Date,default:Date.now()},
+      },
+    ],
+    
   },
-  { collection: "Posts" }
+  { collection: "Post" }
 );
 
-const Post = mongoose.model("Posts", postSchema);
+const Post = mongoose.model("Post", postSchema);
 module.exports = Post;

@@ -20,7 +20,7 @@ let regpass=/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
 let nameListner = vname.addEventListener("input", () => {
   if (vname.value.match(regname) != vname.value) {
-    console.log("hello");
+    
     error.textContent = "Please enter a valid name";
     check[0] = 0;
     checkValid()
@@ -32,7 +32,7 @@ let nameListner = vname.addEventListener("input", () => {
 });
 let lnameListner = lname.addEventListener("input", () => {
     if (lname.value.match(regname) != lname.value) {
-      console.log("hello");
+      
       error1.textContent = "Please enter a valid name";
       check[1] = 0;
       checkValid()

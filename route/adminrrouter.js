@@ -15,7 +15,7 @@ const req = require("express/lib/request");
 const jwt = require("jsonwebtoken");
 
 adminrouter.get("/", (req, res) => {
-  console.log("root");
+  
   if (req.session.usertype == "admin") {
     res.status(403).redirect("admin/homepage");
   } else {
@@ -26,11 +26,11 @@ const verify = (req, res, next) => {
   const authheader = req.headers.accesstoken;
 
   if (authheader) {
-    console.log("++++++++++++" + authheader);
+    
     const token = authheader.split(" ")[1];
-    console.log(JSON.parse(token));
+    
     jwt.verify(JSON.parse(token), "secretkey", (err, user) => {
-      console.log(err + user);
+      
       if (err) return res.status(403).json("token not valid");
       else req.user = user;
       next();
@@ -41,7 +41,7 @@ const verify = (req, res, next) => {
 };
 
 adminrouter.post("/", async (req, res) => {
-  console.log(req.body);
+  
   const { username, password } = req.body;
   const user = await Admin.findOne({ email: username }).lean();
   if (!user) {
@@ -53,16 +53,14 @@ adminrouter.post("/", async (req, res) => {
       req.session.usertype = "admin";
       res.status(200).json({ accesstoken, usertype: "admin" });
     } else {
-      res
-        .status(401)
-        .json({ err: "Wrong username or password" });
+      res.status(401).json({ err: "Wrong username or password" });
     }
   }
 });
 // adminrouter.use((req, res, next) => {
 //   if (!req.session.Isadmin) {
-//     console.log("not admin"); 
-//     console.log("User");
+//     
+//     
 //     res.status(200).redirect("/admin");
 //   } else next();
 // });
@@ -82,7 +80,7 @@ adminrouter.post(
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long"),
   async (req, res) => {
-    console.log("keeeeeeeeeri");
+    
     const { errors } = validationResult(req);
     const { fname, lname, mail, password } = req.body;
     const hashpass = await bcrypt.hash(password, 10).then((message) => {
@@ -91,7 +89,7 @@ adminrouter.post(
     if (!errors.length) {
       try {
         await User.create({
-          fname: fname, 
+          fname: fname,
           lname: lname,
           email: mail,
           password: hashpass,
@@ -100,10 +98,10 @@ adminrouter.post(
           res.status(201).json("User created successfully");
         });
       } catch (err) {
-        console.log(err);
+        
         if (err.code == 11000) {
-          console.log(JSON.stringify(err)); 
-          console.log(err);
+          
+          
           err.message = "User already exists";
           res.status(409).json({ err: err.message });
         } else if (err) {
@@ -116,18 +114,18 @@ adminrouter.post(
         }
       }
     } else {
-      console.log(errors);
+      
       res.status(400).render("admincreate", { err: "", errors });
     }
   }
 );
-adminrouter.get("/homepage",async (req, res) => {
-  console.log("dsfkdj");
+adminrouter.get("/homepage", async (req, res) => {
+  
   await User.find({})
     .sort({ fname: 1 })
     .collation({ locale: "en" })
     .then((userobj) => {
-      console.log(userobj);
+      
       res.status(200).json(userobj);
     })
     .catch((e) => {
@@ -135,11 +133,11 @@ adminrouter.get("/homepage",async (req, res) => {
     });
 });
 adminrouter.get("/find", async (req, res) => {
-  console.log(req.query.iofield);
+  
   const userobj = await User.find({
     fname: new RegExp(req.query.iofield, "i"),
   }).lean();
-  console.log(userobj[0]);
+  
   const a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
   res.status(200).render("searchpage", { userobj });
 });
@@ -153,7 +151,7 @@ adminrouter.get("/:id", async (req, res) => {
     });
 });
 adminrouter.put("/:id", async (req, res) => {
-  console.log(req.params.id+"hjkgjkh");
+  
   const { fname, lname, mail } = req.body;
   try {
     await User.updateOne(
@@ -164,7 +162,7 @@ adminrouter.put("/:id", async (req, res) => {
       res.status(200).json("success");
     });
   } catch (err) {
-    console.log(err.code);
+    
     if (err.code == 11000) {
       err.message = "User already exists";
     }
@@ -172,12 +170,12 @@ adminrouter.put("/:id", async (req, res) => {
   }
 });
 adminrouter.patch("/:id", async (req, res) => {
-  console.log("iam in");
-  console.log(req.params.id);
+  
+  
 
   try {
     const user = await User.findOne({ _id: req.params.id });
-    console.log(user);
+    
     if (user.isBlocked) {
       await User.updateOne({ _id: req.params.id }, { isBlocked: false }).then(
         (message) => {
@@ -196,7 +194,7 @@ adminrouter.patch("/:id", async (req, res) => {
   }
 });
 adminrouter.delete("/:id", async (req, res) => {
-  console.log(req.params.id);
+  
   await User.findByIdAndDelete(req.params.id);
   const users = await User.find({});
   res.status(202).json(users);
