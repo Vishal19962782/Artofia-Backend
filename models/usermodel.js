@@ -40,16 +40,33 @@ const userScema = new mongoose.Schema(
       default:
         "https://thumbs.dreamstime.com/b/default-avatar-profile-image-vector-social-media-user-icon-potrait-182347582.jpg",
     },
+    Notification:[
+      {
+        postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+        notification: { type: String, required: true },
+        date: { type: Date, default: Date.now() },
+        status: { type: String },
+        read: { type: Boolean, default: false },
+        price: { type: Number, required: true },
+      }
+    ]
+    ,
     role: { type: String, required: false, index: { unique: false } },
     isArtist: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false },
-    followers: [{ userName: String, userId: String }],
-    following: [{ userName: String, userId: String }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     orders: [{ orderId: String, orderName: String }],
-    tickets: [{ ticketId: String, ticketName: String }],
+    tickets: [{ ticketId: String, ticketName: String }],  
     Notifications: [{ NotificationId: String, NotificationName: String }],
-    bids: [{ postId: String, postName: String, date: Date, price: String }],
+    bids: [
+      {
+        postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+        date:{type:Date,default:Date.now},
+        price: String,
+      },
+    ],
     dateOfCreation: { type: Date, default: Date.now },
   },
   { collection: "User" }

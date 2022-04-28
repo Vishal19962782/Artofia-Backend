@@ -27,6 +27,7 @@ router.post("/", verify, upload.single("image"), async (req, res) => {
     postName: req.body.postName,
     postOwner: req.headers.user,
     postDescription: req.body.postDescription,
+    minPrice: req.body.minPrice,
     Image: req.file.path,
   };
   Post.create(postObj)
@@ -44,6 +45,7 @@ router.post("/", verify, upload.single("image"), async (req, res) => {
       res.status("200").json(post);
     })
     .catch((err) => {
+      console.log(err);
       res.status(400).send(err);
     });
 });
@@ -57,7 +59,7 @@ router.get("/", verify, (req, res) => {
       path: "postComments.userId",
       select: "_id fname lname ",
     })
-    .populate("postOwner", "_id fname lname")
+    .populate("postOwner", "_id fname lname avatar")
     .then((post) => {
       res.send(post);
     })
@@ -121,7 +123,8 @@ router.get("/test", async (req, res) => {
       path: "postComments.userId",
       select: "_id fname lname",
     })
-    .populate("postOwner", "_id fname lname");
+    .populate("postOwner", "_id fname lname")
+    .select("-_id");
   res.send(pr);
 });
 router.post("/comment", verify, async (req, res) => {
@@ -145,5 +148,94 @@ router.post("/comment", verify, async (req, res) => {
     .catch((err) => {
       res.send(err);
     });
+});
+
+router.put("/bid", verify, async (req, res) => {
+  // bid checking if value is greater than max value in bids array
+  console.log(req.body);
+  try {
+    await Post.findByIdAndUpdate(
+      req.body.postId,
+      { $push: { bids: { userId: req.headers.user, bidPrice: req.body.bid } } },
+      { new: true }
+    );
+    await User.findByIdAndUpdate(
+      req.headers.user,
+      { $push: { bids: { postId: req.body.postId, price: req.body.bid } } },
+      { new: true }
+    );
+    res.status(200).send("Bid added");
+  } catch (err) {
+    res.status.send(err);
+  }
+});
+router.get("/getBids", verify, (req, res) => {
+  const selectCondition = `bids`;
+  User.findById(req.headers.user)
+    .populate("bids.postId")
+    .select(selectCondition)
+    .where("bids")
+    .elemMatch({ userId: req.headers.user })
+    .then((user) => {
+      console.log(user);
+      res.send(user);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.send(err);
+    });
+});
+router.get("/ArtistBids", verify, (req, res) => {
+  console.log("keeri");
+  Post.find({ postOwner: req.headers.user })
+    .then((post) => {
+      console.table(post);
+      res.send(post);
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+router.post("/AcceptBid", verify, async (req, res) => {
+  try {
+    const notification = `You're bid for ${req.body.postName}  has been accepted`;
+    
+    const post = await Post.findByIdAndUpdate(
+      req.body.postId,
+      { $set: { Status: "Accepted",soldTo:req.body.userId } },
+      {new:false}
+    );
+    console.log("+++++++++++++++++++++++++++++++++++");
+    console.log(post);
+    console.log("+++++++++++++++++++++++++++++++++++");
+    if (1) {
+      
+      const user = await User.updateOne(
+        { _id: req.body.userId },
+        {
+          $push: {
+            Notification: {
+              postId: req.body.postId,
+              userId: req.headers.user,
+              price: req.body.price,
+              status: "Accepted",
+              notification: notification,
+            },
+          },
+        },
+        { new: true }
+      );
+      console.log(post);
+      console.log(user);
+
+      res.status(200).send("Bid Accepted");
+    }
+    else{
+      throw new Error("Post is not in bidding status");
+    }
+  } catch (err) {
+    console.log(err);
+    res.send(err);
+  }
 });
 module.exports = router;

@@ -11,7 +11,13 @@ const postSchema = new mongoose.Schema(
       match: [/^[a-zA-Z][a-zA-Z\s]*$/, "Enter a valid name"],
       minlength: [3, "please enter min 5 chars"],
     },
-    postOwner: { type: mongoose.Schema.Types.ObjectId,ref:"User", required: true },
+    Status: { type: String,  enum: ['Bidding', 'Accepted', 'Sold','Rejected'],default: "Bidding" },
+    postOwner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    soldTo:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
 
     postDescription: {
       type: String,
@@ -20,14 +26,14 @@ const postSchema = new mongoose.Schema(
     },
     postCategory: {
       type: String,
-      required: false, 
+      required: false,
       index: { unique: false },
     },
-    Image: { type: String ,required:true },
+    Image: { type: String, required: true },
     postDate: {
       type: Date,
       required: false,
-      index: { unique: false }, 
+      index: { unique: false },
       default: Date.now,
     },
     postLikes: [
@@ -38,11 +44,18 @@ const postSchema = new mongoose.Schema(
     postComments: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        comment: { type: String, required: true, index: { unique: false } },
-        date:{type:Date,default:Date.now()},
+        comment: { type: String, required: true },
+        date: { type: Date, default: Date.now() },
       },
     ],
-    
+    minPrice: { type: Number, required: true },
+    bids: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        bidPrice: { type: Number, required: true },
+        date: { type: Date, default: Date.now() },
+      },
+    ],
   },
   { collection: "Post" }
 );

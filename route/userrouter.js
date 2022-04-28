@@ -14,7 +14,8 @@ const jwt = require("jsonwebtoken");
 const { verify } = require("../route/jwt-middleware/verify");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const multer=require("multer");
+const mongoose = require("mongoose");
+const multer = require("multer");
 cloudinary.config({
   cloud_name: "artofia",
   api_key: "174827452135129",
@@ -77,7 +78,8 @@ router.get("/register", (req, res) => {
   res.status(200).render("signup", { err: "", succ: "", errors: 0 });
 });
 router.post(
-  "/register",upload.single("image"),
+  "/register",
+  upload.single("image"),
   check("fname")
     .isLength({ min: 3 })
     .withMessage("First name must be at least 3 characters long"),
@@ -90,7 +92,6 @@ router.post(
     .withMessage("Password must be at least 8 characters long"),
 
   async (req, res) => {
-
     const { errors } = validationResult(req);
     debugger;
     const hashpass = await bcrypt
@@ -106,11 +107,12 @@ router.post(
           email: req.body.email,
           password: hashpass,
           phoneNo: req.body.phoneNo,
-          avatar:req.file.path
+          // avatar: req.file.path,
         }).then((messages) => {
           res.json("Success");
         });
       } catch (err) {
+        console.log(err);
         if (err.code == 11000) {
           err.message = "User already exists";
 
@@ -130,12 +132,13 @@ router.post(
   }
 );
 router.put("/addAddress", verify, async (req, res) => {
-  {const updated = await User.findByIdAndUpdate(
-    req.headers.user,
-    { $push: { addressArray: req.body } },
-    { new: true }
-  )
-  if(updated) res.status(200).json(updated)
+  {
+    const updated = await User.findByIdAndUpdate(
+      req.headers.user,
+      { $push: { addressArray: req.body } },
+      { new: true }
+    );
+    if (updated) res.status(200).json(updated);
   }
 });
 // router.use("/homepage", (req, res, next) => {
@@ -147,6 +150,17 @@ router.put("/addAddress", verify, async (req, res) => {
 //     next();
 //   }
 // });
+router.get("/getUserInfo/:id", verify, (req, res) => {
+  User.findById(req.params.id)
+    .select("-password")
+    .populate({
+      path: "posts",
+    })
+    .then((user) => {
+      console.log(user);
+      res.status(200).json(user);
+    });
+});
 router.get("/homepage", verify, async (req, res) => {
   if (req.headers.user) {
     const founduser = await User.findOne({ _id: req.headers.user }).lean();
@@ -171,7 +185,7 @@ router.put("/updateUser", verify, async (req, res) => {
     res.status(404).json({ message: "user not found" });
   }
 });
-router.get("/logout", (req, res) => {
+router.get("/logout/", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
       res.status(403).send("Error while logingout..!, Try again");
@@ -180,5 +194,41 @@ router.get("/logout", (req, res) => {
     }
   });
 });
-
+router.post("/followUser/:id", verify, async (req, res) => {
+  try {
+    console.log("entered" + req.params.id);
+    const id = mongoose.Types.ObjectId(req.params.id);
+    console.log(id);
+    const user = await User.updateOne(
+      { _id: req.headers.user, following: { $nin: [id] } },
+      { $push: { following: id } },
+      { new: true }
+    );
+    if(user.matchedCount){
+      const user2 = await User.updateOne(
+        { _id: id, followers: { $nin: [req.headers.user] } },
+        { $push: { followers: req.headers.user } },
+        { new: true }
+      );
+    }
+    if (!user.matchedCount) {
+      const unfollow = await User.updateOne(
+        { _id: req.headers.user, following: { $in: [id] } },
+        { $pull: { following: id } },
+        { new: true }
+      );
+      const unfollow2 = await User.updateOne(
+        { _id: id, followers: { $in: [req.headers.user] } },
+        { $pull: { followers: req.headers.user } },
+        { new: true }
+      );
+      console.log("unfollowed" + JSON.stringify(unfollow));
+    }
+    const updatedUser = await User.findById(req.headers.user);
+    res.status(200).json({message:"success"});
+  } catch (err) {
+    console.log(err);
+    res.status(404).json({ message: "user not found" });
+  }
+});
 module.exports = router;
