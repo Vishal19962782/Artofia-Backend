@@ -18,7 +18,7 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     soldTo:{type:mongoose.Schema.Types.ObjectId,ref:"User"},
-
+    currentBid:{type:Number,required:true},
     postDescription: {
       type: String,
       required: true,

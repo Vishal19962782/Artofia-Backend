@@ -99,6 +99,7 @@ router.post(
       .then((message) => {
         return message;
       });
+      console.log(req.body);
     if (!errors.length) {
       try {
         User.create({
@@ -107,11 +108,12 @@ router.post(
           email: req.body.email,
           password: hashpass,
           phoneNo: req.body.phoneNo,
-          // avatar: req.file.path,
+          avatar: req?.file?.path,
         }).then((messages) => {
           res.json("Success");
         });
       } catch (err) {
+        console.log("EEEEEEEEEEEEEEEEEEEEERORRR");
         console.log(err);
         if (err.code == 11000) {
           err.message = "User already exists";
@@ -126,7 +128,7 @@ router.post(
         //   res.redirect("/route");
         // }
       }
-    } else {
+    } else { 
       res.status(400).render("signup", { err: "", errors });
     }
   }

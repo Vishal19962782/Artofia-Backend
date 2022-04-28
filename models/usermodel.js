@@ -65,6 +65,7 @@ const userScema = new mongoose.Schema(
         postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
         date:{type:Date,default:Date.now},
         price: String,
+        Status: { type: String,  enum: ['Bidding', 'Accepted', 'Sold','Rejected'],default: "Bidding" }
       },
     ],
     dateOfCreation: { type: Date, default: Date.now },

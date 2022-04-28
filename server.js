@@ -13,8 +13,10 @@ const morgan = require("morgan");
 const router = require("./route/userrouter");
 const Postrouter = require("./route/Posts");
 const adminRouter = require("./route/adminrrouter");
+const TrendingRouteer = require("./route/TrendingRoutes");
 const { redirect } = require("express/lib/response");
 const cors = require("cors");
+const EventRoutes=require("./route/EventRouter")
 
 require("dotenv").config();
 app.use(cors());
@@ -44,15 +46,11 @@ app.use(
     saveUninitialized: true,
   })
 );
-// app.use((req,res,next)=>{
-//   res.locals.message=req.session.message;
-//   delete req.session.message;
-//   next();
-// })
 app.use("/route", router);
 app.use("/api/user", Postrouter);
 app.use("/admin", adminRouter);
-app.set("view engine", "ejs");
+app.use("/Event",EventRoutes)
+app.use("/api/trending", TrendingRouteer);
 app.use("/static", express.static(path.join(__dirname, "public")));
 const DB = "mongodb://localhost:27017/blog";
 
