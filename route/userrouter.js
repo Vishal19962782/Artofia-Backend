@@ -227,7 +227,7 @@ router.post("/followUser/:id", verify, async (req, res) => {
       console.log("unfollowed" + JSON.stringify(unfollow));
     }
     const updatedUser = await User.findById(req.headers.user);
-    res.status(200).json({message:"success"});
+    res.status(200).json(updatedUser);
   } catch (err) {
     console.log(err);
     res.status(404).json({ message: "user not found" });

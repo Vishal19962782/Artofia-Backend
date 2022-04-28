@@ -69,6 +69,40 @@ router.get("/", verify, (req, res) => {
       res.send(err);
     });
 });
+router.get("/getFollowing", verify, async (req, res) => {
+  const id = mongoose.Types.ObjectId(req.headers.user);
+  console.log(id);
+  User.aggregate([
+    { $match: { _id: id } },
+    { $unwind: "$following" },
+    {
+      $lookup: {
+        from: "User",
+        localField: "following",
+        foreignField: "_id",
+        as: "following",
+      },
+    },
+    { $unwind: "$following" },
+    {
+      $project: {
+        posts: "$following.posts",
+      },
+    },
+    { $unwind: "$posts" },
+    {
+      $lookup: {
+        from: "Post",
+        localField: "posts",
+        foreignField: "_id",
+        as: "posts",
+      },
+    },
+  ]).then((user) => {
+    console.log(user);
+    res.json(user);
+  });
+});
 router.get("/find_by_id", verify, (req, res) => {
   Post.findById(req.query.postId)
     .populate({
@@ -162,11 +196,15 @@ router.put("/bid", verify, async (req, res) => {
     const post = await Post.find(
       { _id: req.body.postId, "bids.userId": req.headers.user },
       async (err, post) => {
-        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        console.log(
+          "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        );
         console.log(post);
         console.log(err);
-        console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  
+        console.log(
+          "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        );
+
         if (!post.length) {
           console.log("newwwww bid");
           const post = await Post.findByIdAndUpdate(
@@ -180,7 +218,7 @@ router.put("/bid", verify, async (req, res) => {
             { new: true }
           );
         } else {
-          console.log("alreadyyyyy bidding")
+          console.log("alreadyyyyy bidding");
           const post = await Post.findOneAndUpdate(
             { _id: req.body.postId, "bids.userId": req.headers.user },
             {
@@ -200,7 +238,6 @@ router.put("/bid", verify, async (req, res) => {
     const user = User.find(
       { _id: req.headers.user, "bids.postId": req.body.postId },
       async (err, user) => {
-        
         if (!user.length) {
           await User.findByIdAndUpdate(
             req.headers.user,
@@ -275,8 +312,11 @@ router.post("/AcceptBid", verify, async (req, res) => {
       console.log("+++++++++++++++++++++++++++++++++++");
       console.log(post);
       console.log("+++++++++++++++++++++++++++++++++++");
-      console.log(req.body);
       if (1) {
+        console.log(req.body);
+        console.log("+++++++++++++++==");
+        console.log(req.headers.user);
+        console.log("---------------");
         const user = await User.updateOne(
           { _id: req.body.userId, "bids.postId": req.body.postId },
           {
@@ -308,5 +348,16 @@ router.post("/AcceptBid", verify, async (req, res) => {
     console.log(err);
     res.json(err);
   }
+});
+router.get("/getArtistImages", verify, (req, res) => {
+  Post.find({ postOwner: req.body.user })
+    .select("Image")
+    .then((post) => {
+      console.table(post);
+      res.send(post);
+    })
+    .catch((err) => {
+      res.send(err);
+    });
 });
 module.exports = router;
