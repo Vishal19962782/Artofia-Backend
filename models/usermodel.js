@@ -40,7 +40,7 @@ const userScema = new mongoose.Schema(
       default:
         "https://thumbs.dreamstime.com/b/default-avatar-profile-image-vector-social-media-user-icon-potrait-182347582.jpg",
     },
-    Notification:[
+    Notification: [
       {
         postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
         notification: { type: String, required: true },
@@ -48,9 +48,8 @@ const userScema = new mongoose.Schema(
         status: { type: String },
         read: { type: Boolean, default: false },
         price: { type: Number, required: true },
-      }
-    ]
-    ,
+      },
+    ],
     role: { type: String, required: false, index: { unique: false } },
     isArtist: { type: Boolean, default: false },
     isAdmin: { type: Boolean, default: false },
@@ -58,14 +57,22 @@ const userScema = new mongoose.Schema(
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     orders: [{ orderId: String, orderName: String }],
-    tickets: [{ ticketId: String, ticketName: String }],  
+    tickets: [
+      {
+        ticketId: { type: mongoose.Schema.Types.ObjectId, ref: "TicketOrders" },
+      },
+    ],
     Notifications: [{ NotificationId: String, NotificationName: String }],
     bids: [
       {
         postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
-        date:{type:Date,default:Date.now},
+        date: { type: Date, default: Date.now },
         price: String,
-        Status: { type: String,  enum: ['Bidding', 'Accepted', 'Sold','Rejected'],default: "Bidding" }
+        Status: {
+          type: String,
+          enum: ["Bidding", "Accepted", "Sold", "Rejected"],
+          default: "Bidding",
+        },
       },
     ],
     dateOfCreation: { type: Date, default: Date.now },

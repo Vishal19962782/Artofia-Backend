@@ -27,14 +27,15 @@ router.get("/", (req, res) => {
     });
 });
 router.get("/trendingArtsits", (req, res) => {
-  User.aggregate([{
-    $match: {isArtist: true},
-  },
-    { 
+  User.aggregate([
+    {
+      $match: { isArtist: true },
+    },
+    {
       $project: {
         count: { $sum: { $size: "$followers", $size: "$posts" } },
         postOwner: 1,
-        img: "$Image",
+        img: "$avatar",
         name: "$fname",
       },
     },
@@ -42,7 +43,9 @@ router.get("/trendingArtsits", (req, res) => {
     { $limit: 5 },
   ])
     .then((data) => {
+      console.log("++++++++++++++++++++++++++=");
       console.log(data);
+      console.log("++++++++++++++++++++++++++=");
       res.json(data);
     })
     .catch((err) => {

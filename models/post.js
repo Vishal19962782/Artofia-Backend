@@ -49,6 +49,7 @@ const postSchema = new mongoose.Schema(
       },
     ],
     minPrice: { type: Number, required: true },
+    saleID:{type:mongoose.Schema.Types.ObjectId,ref:"Orders"},
     bids: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

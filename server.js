@@ -16,25 +16,13 @@ const adminRouter = require("./route/adminrrouter");
 const TrendingRouteer = require("./route/TrendingRoutes");
 const { redirect } = require("express/lib/response");
 const cors = require("cors");
-const EventRoutes=require("./route/EventRouter")
-
+const EventRoutes=require("./route/EventRouters")
+const paymentRoutes=require("./route/PaymentRoutes")
+const TicketRoutes=require("./route/TicketRoutes")
 require("dotenv").config();
 app.use(cors());
 app.use(methodOverride("_method"));
 app.use(morgan("tiny"));
-debugger;
-app.use(function (req, res, next) {
-  if (!req.user) {
-    res.header(
-      "Cache-Control",
-      "private , no-cache, no-store, must-revalidate"
-    );
-    res.header("Expires", "-1");
-    res.header("Pragma", "no-cache");
-  }
-  next();
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // app.use(fileUpload())
@@ -51,6 +39,9 @@ app.use("/api/user", Postrouter);
 app.use("/admin", adminRouter);
 app.use("/Event",EventRoutes)
 app.use("/api/trending", TrendingRouteer);
+app.use("/api/Events",EventRoutes)
+app.use("/api/payment",paymentRoutes)
+app.use("/api/ticket", TicketRoutes)
 app.use("/static", express.static(path.join(__dirname, "public")));
 const DB = "mongodb://localhost:27017/blog";
 
