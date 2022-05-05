@@ -18,6 +18,10 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const UserControllers = require("../controllers/UserControllers");
 const TicketRoute = require("../route/TicketRoutes");
+const twiilio = require("../Sms helpers/twilio");
+const otp = require("otp-generator");
+const message = require("../route/Sms Middleware/sms");
+const sms = require("../route/Sms Middleware/sms");
 cloudinary.config({
   cloud_name: "artofia",
   api_key: "174827452135129",
@@ -70,4 +74,18 @@ router.get("/logout/", (req, res) => {
   });
 });
 router.post("/followUser/:id", verify, UserControllers.followUser);
+router.post("/getotp", async(req, res) => {
+  try{
+    const phone = req.body.phoneNo;
+    const OTP = otp.generate(6, { upperCase: false, specialChars: false });
+    const message = `Your OTP for artofia is ${OTP}`;
+    await sms(phone, message);
+    const token=await jwt.sign({ phone, OTP }, "secretkey")
+    res.status(200).json({token})
+  }
+  catch(err){
+    console.log(err);
+    res.send(err)
+  }
+});      
 module.exports = router;

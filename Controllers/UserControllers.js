@@ -6,11 +6,12 @@ const Cryptr = require("cryptr");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const multer = require("multer");
-const client = require('twilio')("ACb6d16ead3d036b7334a32a89619f8a6e", "1c0aead40b2f116e234fac1ee8d45549");
-
+const router = require("../route/Posts");
+const message = require("../route/Sms Middleware/sms");
+const otp = require("otp-generator");
 exports.get = (req, res) => {
-  res.send("working"); 
-}; 
+  res.send("working");
+};
 exports.login = async (req, res) => {
   const { errors } = validationResult(req);
 
@@ -50,7 +51,20 @@ exports.login = async (req, res) => {
 };
 exports.register = async (req, res) => {
   const { errors } = validationResult(req);
-  debugger;
+  const phoneNumber = jwt.verify(
+    req.body.oToken,
+    "secretkey",
+    (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: "Invalid OTP" });
+      } else {
+        return decoded.phoneNumber;
+      }
+    }
+  );
+  if(phoneNUmber!==req.body.phoneNo){
+    return res.status(401).json({ message: "Invalid OTP" });
+  }
   const hashpass = await bcrypt.hash(req.body.password, 10).then((message) => {
     return message;
   });
