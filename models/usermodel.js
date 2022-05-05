@@ -57,6 +57,7 @@ const userScema = new mongoose.Schema(
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     orders: [{ orderId: String, orderName: String }],
+    description: { type: String, required: false },
     tickets: [
       {
         ticketId: { type: mongoose.Schema.Types.ObjectId, ref: "TicketOrders" },

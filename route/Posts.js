@@ -51,4 +51,29 @@ router.get("/getBids", verify, PostControllers.getBids);
 router.get("/ArtistBids", verify, PostControllers.ArtistBids);
 router.post("/AcceptBid", verify, PostControllers.acceptBids);
 router.get("/getArtistImages", verify, PostControllers.getArtistImages);
+router.get("/getfollowingArts", verify, async (req, res) => {
+  console.log(req.headers.user);
+  const id = mongoose.Types.ObjectId(req.headers.user);
+  console.log(id);
+  const posts = await User.aggregate([
+    { $match: { _id: id } },
+    { $project: { following: 1 } },
+    { $unwind: "$following" },
+    {
+      $lookup: {
+        from: "Post",
+        localField: "following",
+        foreignField: "postOwner",
+        as: "Posts",
+      },
+    },
+    { $project: { Posts: 1 } },
+  ]);
+  // const user=await User.findById(req.headers.user).select("following").populate("following","posts").select("following");
+  // const postIds=user.following.map(f=>f.posts);
+  // console.log(postIds);
+  // const posts=await Post.find({_id:{$in:postIds}})
+  // console.log(user);
+  res.send(posts);
+});
 module.exports = router;

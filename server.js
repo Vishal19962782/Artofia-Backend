@@ -19,6 +19,8 @@ const cors = require("cors");
 const EventRoutes=require("./route/EventRouters")
 const paymentRoutes=require("./route/PaymentRoutes")
 const TicketRoutes=require("./route/TicketRoutes")
+const adminRoutes=require("./route/AdminRoutes")
+const requestRoutes=require("./route/RequestRoutes")
 require("dotenv").config();
 app.use(cors());
 app.use(methodOverride("_method"));
@@ -37,11 +39,13 @@ app.use(
 app.use("/route", router);
 app.use("/api/user", Postrouter);
 app.use("/admin", adminRouter);
+app.use("/api/admin",adminRoutes)
 app.use("/Event",EventRoutes)
 app.use("/api/trending", TrendingRouteer);
 app.use("/api/Events",EventRoutes)
 app.use("/api/payment",paymentRoutes)
 app.use("/api/ticket", TicketRoutes)
+app.use("/api/Request",requestRoutes);
 app.use("/static", express.static(path.join(__dirname, "public")));
 const DB = "mongodb://localhost:27017/blog";
 
@@ -51,7 +55,7 @@ mongoose
     console.log("connected to db");
   })
   .catch((err) => {});
-
+ 
 app.listen(process.env.PORT, () => {
   console.log("server is running");
 });
