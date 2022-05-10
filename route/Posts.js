@@ -76,4 +76,10 @@ router.get("/getfollowingArts", verify, async (req, res) => {
   // console.log(user);
   res.send(posts);
 });
+router.get("/getPostById/:id",verify,(req,res)=>{
+  const id=req.params.id;
+  Post.findById(id).then(post=>{
+    res.send(post);
+  })
+})
 module.exports = router;

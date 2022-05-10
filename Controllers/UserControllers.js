@@ -9,6 +9,7 @@ const multer = require("multer");
 const router = require("../route/Posts");
 const message = require("../route/Sms Middleware/sms");
 const otp = require("otp-generator");
+const client = require("../Sms helpers/twilio"); //twilio client
 exports.get = (req, res) => {
   res.send("working");
 };
@@ -51,27 +52,24 @@ exports.login = async (req, res) => {
 };
 exports.register = async (req, res) => {
   const { errors } = validationResult(req);
-  const phoneNumber = jwt.verify(
-    req.body.oToken,
-    "secretkey",
-    (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ message: "Invalid OTP" });
-      } else {
-        return decoded.phoneNumber;
-      }
-    }
-  );
-  if(phoneNUmber!==req.body.phoneNo){
-    return res.status(401).json({ message: "Invalid OTP" });
-  }
   const hashpass = await bcrypt.hash(req.body.password, 10).then((message) => {
     return message;
   });
   console.log(req.body);
   if (!errors.length) {
     try {
-      User.create({
+      // const result = await client.verify
+      //   .services("VA6f10262fa4d3768012aca96083227c56")
+      //   .verificationChecks.create({ to: req.body.phoneNo, code: req.body.Otp })
+      //   .then((verification_check) => {
+      //     return verification_check.status;
+      //   });
+      // console.log(result);
+      // if (result != "approved") {
+      //   throw new Error("OTP not verified");
+      // }
+
+      await User.create({
         fname: req.body.fname,
         lname: req.body.lname,
         email: req.body.email,
@@ -85,20 +83,14 @@ exports.register = async (req, res) => {
       console.log("EEEEEEEEEEEEEEEEEEEEERORRR");
       console.log(err);
       if (err.code == 11000) {
-        err.message = "User already exists";
-
-        res.status(400).json({ message: "User already exists" });
-      } else if (err) {
-        res
-          .status(400)
-          .render("signup", { err: "Please enter valid details", errors });
+        res.status(200).send({ message: "User already exists", code: 300 });
+      } else {
+        res.status(200).send({ message: "Invalid OTP", code: 304 });
       }
       // else {
       //   res.redirect("/route");
       // }
     }
-  } else {
-    res.status(400).render("signup", { err: "", errors });
   }
 };
 exports.addAddress = async (req, res) => {
@@ -135,10 +127,12 @@ exports.homepage = async (req, res) => {
 exports.updateUser = async (req, res) => {
   console.log(req.headers.user);
   console.log(req.body);
+  const hashpass = await bcrypt.hash(req.body.password, 10);
+  console.log(hashpass);
   try {
     const newDetails = await User.findOneAndUpdate(
       { _id: req.headers.user },
-      req.body,
+      { ...req.body, password: hashpass },
       { new: true }
     );
     res.status(200).json(newDetails);

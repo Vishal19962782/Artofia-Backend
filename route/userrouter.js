@@ -18,10 +18,9 @@ const mongoose = require("mongoose");
 const multer = require("multer");
 const UserControllers = require("../controllers/UserControllers");
 const TicketRoute = require("../route/TicketRoutes");
-const twiilio = require("../Sms helpers/twilio");
 const otp = require("otp-generator");
-const message = require("../route/Sms Middleware/sms");
-const sms = require("../route/Sms Middleware/sms");
+const client = require("../Sms helpers/twilio");
+
 cloudinary.config({
   cloud_name: "artofia",
   api_key: "174827452135129",
@@ -74,18 +73,84 @@ router.get("/logout/", (req, res) => {
   });
 });
 router.post("/followUser/:id", verify, UserControllers.followUser);
-router.post("/getotp", async(req, res) => {
-  try{
-    const phone = req.body.phoneNo;
-    const OTP = otp.generate(6, { upperCase: false, specialChars: false });
-    const message = `Your OTP for artofia is ${OTP}`;
-    await sms(phone, message);
-    const token=await jwt.sign({ phone, OTP }, "secretkey")
-    res.status(200).json({token})
+router.post("/getOtp", async (req, res) => {
+  if (req.body.email) {
+    const user = await User.findOne({ email: req.body.email });
+    console.log(user);
+    req.body.phoneNo = user.phoneNo;
+    if (!user) {
+      res.status(200).json({ message: "invalid email" });
+    } else {
+      const token = jwt.sign(
+        { phoneNo: req.body.phoneNo, userId: user._id },
+        "secretOtpkey",
+        {
+          expiresIn: "1h",
+        }
+      );
+      console.log(req.body.phoneNo);
+      client.verify
+        .services("VA6f10262fa4d3768012aca96083227c56")
+        .verifications.create({ to: req.body.phoneNo, channel: "sms" })
+        .then((verify) => res.status(200).send(token))
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
-  catch(err){
-    console.log(err);
-    res.send(err)
-  }
-});      
+});
+router.post("/verifyOtp", async (req, res) => {
+  console.log(req.body.otp);
+  const number = jwt.verify(req.body.token, "secretOtpkey", (err, decoded) => {
+    if (err) {
+      res.status(200).json({ message: "invalid otp" });
+    } else {
+      return decoded;
+    }
+  });
+  client.verify
+    .services("VA6f10262fa4d3768012aca96083227c56")
+    .verificationChecks.create({ to: number.phoneNo, code: req.body.otp })
+    .then((verification_check) => {
+      if (verification_check.status !== "approved") {
+        throw new Error("invalid otp");
+      }
+      const token = jwt.sign(
+        { phoneNo: number, userId: number.userId },
+        "secretOtpkey",
+        { expiresIn: "1h" }
+      );
+      res.status(200).send(token);
+    })
+    .catch(() => {
+      res.status(400).json({ message: "invalid otp" });
+    });
+});
+router.put("/changePassword", async (req, res) => {
+  console.log(req.body.password);
+  const hashpass = await bcrypt.hash(req.body.password, 10).then((message) => {
+    return message;
+  });
+  console.log(hashpass);
+  jwt.verify(req.body.token, "secretOtpkey", (err, decoded) => {
+    if (err) {
+      console.log(err);
+      res.status(200).json({ message: "invalid otp" });
+    } else {
+      console.log(decoded.phoneNo);
+      const user = User.findByIdAndUpdate(decoded.phoneNo.userId, {
+        password: hashpass,
+      }).then((user) => {
+        res.status(200).json({ message: "password changed successfully" });
+      });
+    }
+  });
+});
+router.put("/userPasswordChnage",verify,async (req,res)=>{
+  console.log(req.body.password);
+  const hashpass = await bcrypt.hash(req.body.password, 10)
+  user.findByIdAndUpdate(req.headers.user,{password:hashpass}).then((user)=>{
+    res.status(200).json({message:"password changed successfully"})
+  })
+})
 module.exports = router;
