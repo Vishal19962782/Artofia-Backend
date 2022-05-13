@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const Event = new mongoose.Schema(
   {
+  
     eventName: { type: String, required: true },
     eventOwner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     noOfTickets: { type: Number, required: true },

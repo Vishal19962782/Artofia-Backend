@@ -55,7 +55,7 @@ exports.register = async (req, res) => {
   const hashpass = await bcrypt.hash(req.body.password, 10).then((message) => {
     return message;
   });
-  console.log(req.body);
+  
   if (!errors.length) {
     try {
       // const result = await client.verify
@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
       //   .then((verification_check) => {
       //     return verification_check.status;
       //   });
-      // console.log(result);
+      // 
       // if (result != "approved") {
       //   throw new Error("OTP not verified");
       // }
@@ -80,8 +80,8 @@ exports.register = async (req, res) => {
         res.json("Success");
       });
     } catch (err) {
-      console.log("EEEEEEEEEEEEEEEEEEEEERORRR");
-      console.log(err);
+      
+      
       if (err.code == 11000) {
         res.status(200).send({ message: "User already exists", code: 300 });
       } else {
@@ -110,7 +110,7 @@ exports.getUserInfo = (req, res) => {
       path: "posts",
     })
     .then((user) => {
-      console.log(user);
+      
       res.status(200).json(user);
     });
 };
@@ -125,10 +125,10 @@ exports.homepage = async (req, res) => {
   }
 };
 exports.updateUser = async (req, res) => {
-  console.log(req.headers.user);
-  console.log(req.body);
+  
+  
   const hashpass = await bcrypt.hash(req.body.password, 10);
-  console.log(hashpass);
+  
   try {
     const newDetails = await User.findOneAndUpdate(
       { _id: req.headers.user },
@@ -142,9 +142,9 @@ exports.updateUser = async (req, res) => {
 };
 exports.followUser = async (req, res) => {
   try {
-    console.log("entered" + req.params.id);
+    
     const id = mongoose.Types.ObjectId(req.params.id);
-    console.log(id);
+    
     const user = await User.updateOne(
       { _id: req.headers.user, following: { $nin: [id] } },
       { $push: { following: id } },
@@ -168,12 +168,12 @@ exports.followUser = async (req, res) => {
         { $pull: { followers: req.headers.user } },
         { new: true }
       );
-      console.log("unfollowed" + JSON.stringify(unfollow));
+      
     }
     const updatedUser = await User.findById(req.headers.user);
     res.status(200).json(updatedUser);
   } catch (err) {
-    console.log(err);
+    
     res.status(404).json({ message: "user not found" });
   }
 };

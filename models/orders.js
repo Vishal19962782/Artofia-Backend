@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const Order = new mongoose.Schema({
-    amount: { type: Number, required: true },
+  amount: { type: Number, required: true },
   isPaid: { type: Boolean, required: true },
   razorpay: {
     orderId: String,

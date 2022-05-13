@@ -3,6 +3,7 @@ const { find } = require("../models/usermodel");
 const adminrouter = express.Router();
 const User = require("../models/usermodel");
 const Post = require("../models/post");
+const Admin=require("../models/adminmodel");
 
 // app.use("/api/admin",adminRoutes)
 
@@ -11,7 +12,7 @@ adminrouter.get("/getUserInfos", async (req, res) => {
     const user = await User.find().select("-password ");
     res.send(user);
   } catch (err) {
-    console.log(err);
+    
     res.send(err);
   }
 });
@@ -32,7 +33,7 @@ adminrouter.get("/getPostInfos", async (req, res) => {
       .populate("postOwner", "fname lname avatar");
     res.send(post);
   } catch (err) {
-    console.log(err);
+    
     res.send(err);
   }
 });
@@ -41,7 +42,7 @@ adminrouter.get("/getUserInfo/:id", async (req, res) => {
     const user = await User.findById(req.params.id).select("-password");
     res.status(200).json(user);
   } catch (err) {
-    console.log(err);
+    
   }
 });
 module.exports = adminrouter;

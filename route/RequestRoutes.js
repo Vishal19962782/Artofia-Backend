@@ -29,7 +29,7 @@ router.post("/", verify, upload.single("image"), (req, res) => {
   });
   request.save((err, doc) => {
     if (err) {
-      console.log(err);
+      
       res.status(400).send(err);
     } else {
       res.status(201).send(doc);
@@ -46,11 +46,11 @@ router.get("/", verify, (req, res) => {
 router.put("/AcceptRequest", verify, async (req, res) => {
   try {
     const user =await User.findByIdAndUpdate(req.body.userId, {
-      $set: { isArtist: true },
+      $set: { isArtist: true,description:req.body.description },
     });
     const request =await Req.findByIdAndDelete(req.body.reqId);
   } catch (err) {
-    console.log(err);
+    
     res.status(400).send(err);
   }
 });
@@ -59,7 +59,7 @@ router.put("/RejectRequest",verify,async(req,res)=>{
         const request=await Req.findByIdAndUpdate(req.body.reqId,{$set:{status:"Rejected",description:req.body.description}});
         res.status(200).send("Rejected")
     }catch(err){
-        console.log(err);
+        
         res.status(400).send(err);
     }
 })

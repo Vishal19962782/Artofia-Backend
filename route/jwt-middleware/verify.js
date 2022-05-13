@@ -12,7 +12,7 @@ exports.verify = (req, res, next) => {
         next();
       }); 
     } else {
-        console.log("no token");
+        
       res.status(400).json({ message: "Not authenticated" });
     }
   };

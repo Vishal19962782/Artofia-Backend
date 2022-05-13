@@ -19,7 +19,6 @@ router.post("/order", verify, (req, res) => {
       currency: "INR",
     })
     .then((response) => {
-      console.log(response);
       res.send(response);
     })
     .catch((err) => {
@@ -43,22 +42,49 @@ router.post("/payOrder", verify, async (req, res) => {
       itemType: req.body.itemType,
     });
     const order = await newOrder.save();
-    console.log("++++++++++++++++++++++++++++");
-    console.log(order);
-    console.log("++++++++++++++++++++++++++++");
+
     const user = await User.findOneAndUpdate(
       { _id: req.headers.user, "bids.postId": req.body.orderItem },
-      { $push: { orders: order._id }, $set: { "bids.$.Status": "Sold" },$pull:{Notification:{postId:req.body.orderItem}} }
+      {
+        $push: { orders: order._id },
+        $set: { "bids.$.Status": "Sold" },
+        $pull: { Notification: { postId: req.body.orderItem } },
+      }
     );
     const post = await Post.findOneAndUpdate(
       { _id: req.body.orderItem },
       { $set: { Status: "Sold", saleId: order._id } }
     );
-    console.log();
+
     res.send("Success");
   } catch (err) {
-    console.log(err);
     res.send(err);
   }
 });
+router.get("/getOrders", verify, async (req, res) => {
+  try {
+    const order = await Order.find({ orderOwner: req.headers.user })
+      .populate("orderItem")
+      .populate({
+        path: "orderItem",
+        populate: {
+          path: "postOwner",
+          model: "User",
+          select:"fname lname email",
+        },
+      });
+    console.log(order);
+    res.status(200).send(order);
+  } catch (err) {
+    res.send(err);
+  }
+});
+router.get("/getOrderById/:id", verify, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate("orderItem");
+  } catch (err) {
+    res.send(err);
+  }
+});
+
 module.exports = router;

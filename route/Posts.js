@@ -11,6 +11,8 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const mongoose = require("mongoose");
 const PostControllers = require("../controllers/PostControllers");
 const { verifyArtist } = require("../route/jwt-middleware/verify");
+const { log } = require("console");
+const { login } = require("../Controllers/UserControllers");
 cloudinary.config({
   cloud_name: "artofia",
   api_key: "174827452135129",
@@ -52,34 +54,36 @@ router.get("/ArtistBids", verify, PostControllers.ArtistBids);
 router.post("/AcceptBid", verify, PostControllers.acceptBids);
 router.get("/getArtistImages", verify, PostControllers.getArtistImages);
 router.get("/getfollowingArts", verify, async (req, res) => {
-  console.log(req.headers.user);
-  const id = mongoose.Types.ObjectId(req.headers.user);
-  console.log(id);
-  const posts = await User.aggregate([
-    { $match: { _id: id } },
-    { $project: { following: 1 } },
-    { $unwind: "$following" },
-    {
-      $lookup: {
-        from: "Post",
-        localField: "following",
-        foreignField: "postOwner",
-        as: "Posts",
-      },
-    },
-    { $project: { Posts: 1 } },
-  ]);
-  // const user=await User.findById(req.headers.user).select("following").populate("following","posts").select("following");
-  // const postIds=user.following.map(f=>f.posts);
-  // console.log(postIds);
-  // const posts=await Post.find({_id:{$in:postIds}})
-  // console.log(user);
-  res.send(posts);
+  try {
+    const id = mongoose.Types.ObjectId(req.headers.user);
+    console.log(id);
+    const following = await User.findById(id).select("following -_id");
+    console.log(following);
+    const followingArts = await Post.find({
+      postOwner: { $in: following.following },
+    })
+      .select("-_id")
+      .populate({
+        path: "postLikes.userId",
+        select: "_id fname lname",
+      })
+      .populate({
+        path: "postComments.userId",
+        select: "_id fname lname ",
+      })
+      .populate("postOwner", "_id fname lname avatar");
+
+    // console.log(followingArts);
+    res.status(200).json(followingArts);
+  } catch (err) {
+    console.log(err);
+    res.send(err);
+  }
 });
-router.get("/getPostById/:id",verify,(req,res)=>{
-  const id=req.params.id;
-  Post.findById(id).then(post=>{
+router.get("/getPostById/:id", verify, (req, res) => {
+  const id = req.params.id;
+  Post.findById(id).then((post) => {
     res.send(post);
-  })
-})
+  });
+});
 module.exports = router;

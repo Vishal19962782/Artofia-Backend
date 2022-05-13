@@ -1,7 +1,6 @@
 const Events = require("../models/Events");
 
 exports.AddEvent = async (req, res) => {
-  console.log(req.file);
   const obj = {
     eventName: req.body.eventName,
     eventOwner: req.headers.user,
@@ -15,10 +14,12 @@ exports.AddEvent = async (req, res) => {
     eventBrief: req.body.eventBrief,
   };
   const event = await Events.create(obj);
-  console.log(event);
+
   res.send(event);
 };
-exports.getEvents = async ( req, res) => {
-  const events = await Events.find().populate("eventOwner", "_id fname lname avatar");
+exports.getEvents = async (req, res) => {
+  const events = await Events.find()
+    .populate("eventOwner", "_id fname lname avatar")
+    .sort({ eventDate: -1 });
   res.send(events);
 };

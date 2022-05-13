@@ -8,6 +8,7 @@ const TicketOrder = new mongoose.Schema({
     paymentId: String,
     signature: String,
   },
+  eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Events" },
   orderOwner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   orderDate: { type: Date, default: Date.now() },
   orderItem: { type: mongoose.Schema.Types.ObjectId, ref: "Events" },
